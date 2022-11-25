@@ -1,0 +1,82 @@
+version: '3'
+services:
+
+    ####################### SITE 1 #######################
+    app:
+        build: .
+        volumes:
+            - ./laravel:/var/www/html
+    composer:
+        image: composer
+        volumes:
+            - ./laravel:/var/www/html
+        working_dir: /var/www/html
+        command: "composer install"
+    npm:
+        image: node:alpine
+        volumes:
+            - './laravel:/var/www/html'
+        depends_on:
+            - composer
+        working_dir: /var/www/html
+        command: sh -c "npm install && (npm run build&)"
+    ####################### SITE 2 #######################
+    app2:
+        build: .
+        volumes:
+            - ./laravel2:/var/www/html
+    composer2:
+        image: composer
+        volumes:
+            - ./laravel2:/var/www/html
+        working_dir: /var/www/html
+        command: "composer install"
+    npm2:
+        image: node:alpine
+        volumes:
+            - './laravel2:/var/www/html'
+        depends_on:
+            - composer2
+        working_dir: /var/www/html
+        command: sh -c "npm install && (npm run build&)"
+
+    ####################### Nginx Service #######################
+    webserver:
+        image: nginx:alpine
+        container_name: webserver
+        ports:
+            - "8080:80"
+        volumes:
+            - ./laravel:/var/www/html
+            - ./nginx/conf.d/:/etc/nginx/conf.d/
+
+
+    ####################### Nginx Service 2 #######################
+    webserver2:
+        image: nginx:alpine
+        container_name: webserver2
+        ports:
+            - "8081:80"
+        volumes:
+            - ./laravel2:/var/www/html
+            - ./nginx2/conf.d/:/etc/nginx/conf.d/
+
+    ####################### MYSQL #######################
+    db:
+        platform: linux/x86_64
+        image: mysql:5.7
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: partiel
+            MYSQL_PASSWORD: partiel
+            MYSQL_USER: root
+            MYSQL_ROOT_PASSWORD: partiel
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - ./dbdata:/var/lib/mysql
+            - ./mysql/my.cnf:/etc/mysql/my.cnf
+        ####################### NPM #######################
+
+
